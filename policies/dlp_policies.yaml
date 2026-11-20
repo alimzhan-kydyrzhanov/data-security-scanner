@@ -1,0 +1,38 @@
+# DLP policies as code. The most restrictive matching action wins:
+# block > block_with_override > audit > allow
+policies:
+  - name: Block Highly Confidential data leaving the organisation
+    locations: [email, teams]
+    destination: external
+    min_label: Highly Confidential
+    action: block
+
+  - name: Payment card numbers to external recipients
+    locations: [email, teams]
+    destination: external
+    sit_any: [Credit Card Number]
+    min_count: 1
+    action: block_with_override
+
+  - name: Sensitive data pasted into GenAI apps
+    locations: [genai]
+    sit_any: [Czech Birth Number, Kazakhstan IIN, ICD-10 Diagnosis Code, Credit Card Number, IBAN]
+    min_count: 1
+    action: block
+
+  - name: Confidential data copied to USB
+    locations: [endpoint_usb]
+    min_label: Confidential
+    action: block
+
+  - name: Uploads of confidential data to personal cloud
+    locations: [endpoint_upload]
+    min_label: Confidential
+    action: audit
+
+  - name: Bulk contact data sent externally
+    locations: [email]
+    destination: external
+    sit_any: [Email Address, Phone Number]
+    min_count: 20
+    action: audit
